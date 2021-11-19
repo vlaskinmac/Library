@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import urllib
@@ -21,8 +22,8 @@ def check_for_redirect(response):
         raise HTTPError(f'{response.history} - {HTTPError.__name__}')
 
 
-def download_txt(folder='books'):
-    for id in range(1, 11):
+def download_txt(start, end, folder='books'):
+    for id in range(start, end + 1):
         url_download = f"https://tululu.org/txt.php?id={id}"
         response_download = requests.get(url_download)
         response_download.raise_for_status()
@@ -104,6 +105,20 @@ def parse_book_page(html):
     pprint(content_book)
 
 
+def get_period_from_user():
+    parser = argparse.ArgumentParser(
+        description="The code collects book data from an online library."
+    )
+    parser.add_argument(
+        "-s", "--start_id", help="Set the initial id for book use arguments: '-s or --start_id'"
+    )
+    parser.add_argument(
+        "-e", "--end_id", help="Set the end id for book use arguments: '-e or --end_id'"
+    )
+    args = parser.parse_args()
+    return int(args.start_id), int(args.end_id)
+
+
 def main():
     logging.basicConfig(
         level=logging.WARNING,
@@ -111,8 +126,9 @@ def main():
         filemode="w",
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
-    download_txt()
-    # download_image()
+    start, end = get_period_from_user()
+    download_txt(start, end)
+    download_image()
 
 
 if __name__ == "__main__":

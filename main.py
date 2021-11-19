@@ -21,7 +21,6 @@ def check_for_redirect(response):
 
 
 def download_txt(folder='books'):
-    host = 'https://tululu.org/'
     for id in range(1, 11):
         url_download = f"https://tululu.org/txt.php?id={id}"
         response_download = requests.get(url_download)
@@ -37,8 +36,12 @@ def download_txt(folder='books'):
                 filepath = get_file_path(dir_name=sanitize_filepath(folder))
                 text_tag = soup.find(id='content').find('h1').get_text(strip=True)
                 file_name = sanitize_filename(f"{id}.{text_tag.split('::')[0].strip()}")
-                image_link = soup.find(class_='bookimage').find('img')['src']
-                print(urljoin(host, image_link))
+                comments = soup.find_all(class_="texts")
+                print(text_tag.split('::')[0].strip())
+                for comment_tag in comments:
+                    comment = comment_tag.find('span', class_="black").get_text(strip=True)
+                    print(comment)
+                print()
                 file_path = os.path.join(filepath, f'{file_name}.txt')
         except HTTPError as exc:
             logging.warning(exc)

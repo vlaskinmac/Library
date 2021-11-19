@@ -1,6 +1,7 @@
 import logging
 import os
 import urllib
+from pprint import pprint
 
 import requests
 from bs4 import BeautifulSoup
@@ -33,17 +34,10 @@ def download_txt(folder='books'):
                 continue
             else:
                 soup = BeautifulSoup(response_title.text, 'lxml')
+                parse_book_page(html=soup)
                 filepath = get_file_path(dir_name=sanitize_filepath(folder))
                 text_tag = soup.find(id='content').find('h1').get_text(strip=True)
-                genre_book = soup.find('span', class_='d_book').get_text(strip=True)
                 file_name = sanitize_filename(f"{id}.{text_tag.split('::')[0].strip()}")
-                comments = soup.find_all(class_="texts")
-                print(text_tag.split('::')[0].strip())
-                print(genre_book.split(':')[1])
-                for comment_tag in comments:
-                    comment = comment_tag.find('span', class_="black").get_text(strip=True)
-                    # print(comment)
-                print()
                 file_path = os.path.join(filepath, f'{file_name}.txt')
         except HTTPError as exc:
             logging.warning(exc)
@@ -91,6 +85,25 @@ def download_image():
             logging.warning(exc)
 
 
+def parse_book_page(html):
+    content_book = {}
+    host = 'https://tululu.org/'
+    title_tag = html.find(id='content').find('h1').get_text(strip=True)
+    genre_book = html.find('span', class_='d_book').get_text(strip=True)
+    comments = html.find_all(class_="texts")
+    image_link = html.find(class_='bookimage').find('img')['src']
+    url_image = urljoin(host, image_link)
+    content_book['title'] = title_tag.split('::')[0].strip()
+    content_book['author'] = title_tag.split('::')[1].strip()
+    content_book['genre_book'] = genre_book.split(':')[1]
+    content_book['image_link'] = url_image
+    comments_book = []
+    for comment_tag in comments:
+        comments_book.append(comment_tag.find('span', class_="black").get_text(strip=True))
+    content_book['comments'] = comments_book
+    pprint(content_book)
+
+
 def main():
     logging.basicConfig(
         level=logging.WARNING,
@@ -99,7 +112,7 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     download_txt()
-    download_image()
+    # download_image()
 
 
 if __name__ == "__main__":

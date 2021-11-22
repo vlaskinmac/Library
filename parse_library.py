@@ -110,13 +110,13 @@ def get_period_from_user():
         description="The code collects book data from an online library."
     )
     parser.add_argument(
-        "-s", "--start_id", help="Set the initial id for book use arguments: '-s or --start_id'"
+        "-s", "--start_id", type=int,  help="Set the initial id for book use arguments: '-s or --start_id'"
     )
     parser.add_argument(
-        "-e", "--end_id", help="Set the end id for book use arguments: '-e or --end_id'"
+        "-e", "--end_id", type=int, help="Set the end id for book use arguments: '-e or --end_id'"
     )
     args = parser.parse_args()
-    return int(args.start_id), int(args.end_id)
+    return args.start_id, args.end_id
 
 
 def main():

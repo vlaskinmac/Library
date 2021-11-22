@@ -24,8 +24,9 @@ def check_for_redirect(response):
 
 def download_txt(start, end, folder='books'):
     for number in range(start, end + 1):
-        url_download = f"https://tululu.org/txt.php?id={number}"
-        response_download = requests.get(url_download)
+        payload = {"id": number}
+        url_download = f"https://tululu.org/txt.php?"
+        response_download = requests.get(url_download, params=payload)
         response_download.raise_for_status()
         url_title = f'https://tululu.org/b{number}/'
         response_title = requests.get(url_title)

@@ -105,7 +105,7 @@ def parse_book_page(html):
     pprint(content_book)
 
 
-def get_period_from_user():
+def get_arguments():
     parser = argparse.ArgumentParser(
         description="The code collects book data from an online library."
     )
@@ -126,7 +126,7 @@ def main():
         filemode="w",
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
-    start, end = get_period_from_user()
+    start, end = get_arguments()
     download_txt(start, end)
     download_image()
 

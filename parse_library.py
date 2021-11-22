@@ -65,8 +65,8 @@ def get_tail_url(url):
 def download_image():
     host = 'https://tululu.org/'
     for number in range(1, 11):
-        url_title = f'https://tululu.org/b{number}/'
-        response = requests.get(url_title)
+        url_image_book = f'https://tululu.org/b{number}/'
+        response = requests.get(url_image_book)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
         filepath = get_file_path(dir_name='image')

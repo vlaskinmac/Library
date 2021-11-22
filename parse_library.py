@@ -23,11 +23,11 @@ def check_for_redirect(response):
 
 
 def download_txt(start, end, folder='books'):
-    for id in range(start, end + 1):
-        url_download = f"https://tululu.org/txt.php?id={id}"
+    for number in range(start, end + 1):
+        url_download = f"https://tululu.org/txt.php?id={number}"
         response_download = requests.get(url_download)
         response_download.raise_for_status()
-        url_title = f'https://tululu.org/b{id}/'
+        url_title = f'https://tululu.org/b{number}/'
         response_title = requests.get(url_title)
         response_title.raise_for_status()
         try:
@@ -38,7 +38,7 @@ def download_txt(start, end, folder='books'):
                 parse_book_page(html=soup)
                 filepath = get_file_path(dir_name=sanitize_filepath(folder))
                 text_tag = soup.find(id='content').find('h1').get_text(strip=True)
-                file_name = sanitize_filename(f"{id}.{text_tag.split('::')[0].strip()}")
+                file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
                 file_path = os.path.join(filepath, f'{file_name}.txt')
         except HTTPError as exc:
             logging.warning(exc)
@@ -63,8 +63,8 @@ def get_tail_url(url):
 
 def download_image():
     host = 'https://tululu.org/'
-    for id in range(1, 11):
-        url_title = f'https://tululu.org/b{id}/'
+    for number in range(1, 11):
+        url_title = f'https://tululu.org/b{number}/'
         response = requests.get(url_title)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')

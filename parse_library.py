@@ -25,7 +25,7 @@ def check_for_redirect(response):
 def download_txt(start, end, folder='books'):
     for number in range(start, end + 1):
         payload = {"id": number}
-        url_download = f"https://tululu.org/txt.php?"
+        url_download = f"https://tululu.org/txt.php"
         response_download = requests.get(url_download, params=payload)
         response_download.raise_for_status()
         url_title = f'https://tululu.org/b{number}/'
@@ -47,8 +47,8 @@ def download_txt(start, end, folder='books'):
             if check_for_redirect(response_download):
                 continue
             else:
-                with open(f'{file_path}', 'wb') as file:
-                    file.write(response_download.content)
+                with open(file_path, 'wb') as file:
+                    file.write(response_download.text)
         except HTTPError as exc:
             logging.warning(exc)
 
@@ -62,9 +62,9 @@ def get_tail_url(url):
     return url_name, url_tail
 
 
-def download_image():
+def download_image(start, end):
     host = 'https://tululu.org/'
-    for number in range(1, 11):
+    for number in range(start, end + 1):
         url_image_book = f'https://tululu.org/b{number}/'
         response = requests.get(url_image_book)
         response.raise_for_status()
@@ -129,7 +129,7 @@ def main():
     )
     start, end = get_arguments()
     download_txt(start, end)
-    download_image()
+    download_image(start, end)
 
 
 if __name__ == "__main__":

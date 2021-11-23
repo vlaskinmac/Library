@@ -61,15 +61,16 @@ def parse_book_page(soup):
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
     title_book, author = title_book_tag.split('::')
+    comments_book = [comment_tag.find('span', class_="black").get_text(strip=True) for comment_tag in comments]
     content_book = {
         'title_book': title_book,
         'author': author,
         'genre_book': genre_book,
         'image_link': url_image,
+        'comments': comments_book,
     }
-    comments_book = [comment_tag.find('span', class_="black").get_text(strip=True) for comment_tag in comments]
-    content_book['comments'] = comments_book
     pprint(content_book)
+    return content_book
 
 
 def get_arguments():

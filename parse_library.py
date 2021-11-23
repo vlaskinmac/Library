@@ -68,13 +68,13 @@ def parse_book_page(soup):
 
 def get_arguments():
     parser = argparse.ArgumentParser(
-        description="The code collects book data from an online library."
+        description='The code collects book data from an online library.'
     )
     parser.add_argument(
-        "-s", "--start_id", type=int, help="Set the initial id for book use arguments: '-s or --start_id'"
+        '-s', '--start_id', type=int, help="Set the initial id for book use arguments: '-s or --start_id'"
     )
     parser.add_argument(
-        "-e", "--end_id", type=int, help="Set the end id for book use arguments: '-e or --end_id'"
+        '-e', '--end_id', type=int, help="Set the end id for book use arguments: '-e or --end_id'"
     )
     args = parser.parse_args()
     return args.start_id, args.end_id
@@ -83,15 +83,15 @@ def get_arguments():
 def main():
     logging.basicConfig(
         level=logging.WARNING,
-        filename="logs.log",
-        filemode="w",
-        format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
+        filename='logs.log',
+        filemode='w',
+        format='%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s',
     )
 
     start, end = get_arguments()
     for book_id in range(start, end + 1):
-        payload = {"id": book_id}
-        url_download = f"https://tululu.org/txt.php"
+        payload = {'id': book_id}
+        url_download = f'https://tululu.org/txt.php'
         response_download = requests.get(url_download, params=payload)
         try:
             response_download.raise_for_status()
@@ -113,10 +113,10 @@ def main():
         except HTTPError as exc:
             logging.warning(exc)
             continue
-        soup = BeautifulSoup(response_title_book.text, 'lxml')
+        soup = BeautifulSoup(response_title_book.text, "lxml")
         content_book = parse_book_page(soup)
-        download_txt(content_book, book_id, response_download, folder='books')
-        download_image(content_book, book_id, folder='image')
+        download_txt(content_book, book_id, response_download, folder="books")
+        download_image(content_book, book_id, folder="image")
 
 
 if __name__ == "__main__":

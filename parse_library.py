@@ -71,7 +71,7 @@ def parse_book_page(soup):
     for comment_tag in comments:
         comments_book.append(comment_tag.find('span', class_="black").get_text(strip=True))
     content_book['comments'] = comments_book
-    # pprint(content_book)
+    pprint(content_book)
 
 
 def get_arguments():
@@ -96,8 +96,7 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     start, end = get_arguments()
-    start=1
-    end = 10
+
     for number in range(start, end + 1):
         payload = {"id": number}
         url_download = f"https://tululu.org/txt.php"

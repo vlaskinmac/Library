@@ -22,11 +22,9 @@ def check_for_redirect(response):
         raise HTTPError(f'{response.history} - {HTTPError.__name__}')
 
 
-def download_txt(soup, book_id, response_download, folder='books'):
+def download_txt(content_book, book_id, response_download, folder='books'):
     filepath = get_file_path(dir_name=sanitize_filepath(folder))
-    text_tag_text = soup.find(id='content').find('h1').get_text(strip=True)
-    text_tag, _ = text_tag_text.split('::')
-    file_name = sanitize_filename(f"{book_id}.{text_tag}")
+    file_name = sanitize_filename(f"{book_id}.{content_book['title_book']}")
     file_path = os.path.join(filepath, f'{file_name}.txt')
     with open(file_path, 'w') as file:
         file.write(response_download.text)
@@ -40,12 +38,9 @@ def get_tail_url(url):
     return url_name, url_tail
 
 
-def download_image(soup, filepath):
-    host = 'https://tululu.org/'
-    image_link = soup.find(class_='bookimage').find('img')['src']
-    url_image = urljoin(host, image_link)
-    url_name, url_tail = get_tail_url(url=url_image)
-    response_download = requests.get(url_image)
+def download_image(content_book, filepath):
+    url_name, url_tail = get_tail_url(url=content_book['image_link'])
+    response_download = requests.get(content_book['image_link'])
     response_download.raise_for_status()
     file_path = os.path.join(filepath, f'{url_name}{url_tail}')
     with open(file_path, 'wb') as file:
@@ -68,7 +63,7 @@ def parse_book_page(soup):
         'image_link': url_image,
         'comments': comments_book,
     }
-    # pprint(content_book)
+    pprint(content_book)
     return content_book
 
 
@@ -122,9 +117,9 @@ def main():
             logging.warning(exc)
             continue
         soup = BeautifulSoup(response_title_book.text, 'lxml')
-        download_txt(soup, book_id, response_download, folder='books')
-        download_image(soup, filepath)
-        parse_book_page(soup)
+        content_book = parse_book_page(soup)
+        download_txt(content_book, book_id, response_download, folder='books')
+        download_image(content_book, filepath)
 
 
 if __name__ == "__main__":

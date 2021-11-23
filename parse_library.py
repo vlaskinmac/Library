@@ -24,8 +24,9 @@ def check_for_redirect(response):
 
 def download_txt(soup, number, response_download, folder='books'):
     filepath = get_file_path(dir_name=sanitize_filepath(folder))
-    text_tag = soup.find(id='content').find('h1').get_text(strip=True)
-    file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
+    text_tag_text = soup.find(id='content').find('h1').get_text(strip=True)
+    text_tag, _ = text_tag_text.split('::')
+    file_name = sanitize_filename(f"{number}.{text_tag}")
     file_path = os.path.join(filepath, f'{file_name}.txt')
     with open(file_path, 'w') as file:
         file.write(response_download.text)
@@ -93,8 +94,6 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     start, end = get_arguments()
-    start=1
-    end=10
 
     for number in range(start, end + 1):
         payload = {"id": number}

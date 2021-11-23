@@ -55,14 +55,14 @@ def download_image(soup, filepath):
 
 def parse_book_page(soup):
     host = 'https://tululu.org/'
-    title_tag = soup.find(id='content').find('h1').get_text(strip=True)
+    title_book_tag = soup.find(id='content').find('h1').get_text(strip=True)
     genre_book = [i.text for i in soup.find('span', class_='d_book').find_all('a')]
     comments = soup.find_all(class_="texts")
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
-    title, author = title_tag.split('::')
+    title_book, author = title_book_tag.split('::')
     content_book = {
-        'title': title,
+        'title_book': title_book,
         'author': author,
         'genre_book': genre_book,
         'image_link': url_image,
@@ -100,16 +100,16 @@ def main():
         url_download = f"https://tululu.org/txt.php"
         response_download = requests.get(url_download, params=payload)
         response_download.raise_for_status()
-        url_title = f'https://tululu.org/b{book_id}/'
-        response_title = requests.get(url_title)
-        response_title.raise_for_status()
+        url_title_book = f'https://tululu.org/b{book_id}/'
+        response_title_book = requests.get(url_title_book)
+        response_title_book.raise_for_status()
         filepath = get_file_path(dir_name='image')
         try:
             check_for_redirect(response_download)
         except:
             logging.warning("[<Response [302]>] - HTTPError")
             continue
-        soup = BeautifulSoup(response_title.text, 'lxml')
+        soup = BeautifulSoup(response_title_book.text, 'lxml')
         download_txt(soup, book_id, response_download, folder='books')
         download_image(soup, filepath)
         parse_book_page(soup)

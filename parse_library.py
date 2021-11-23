@@ -66,9 +66,7 @@ def parse_book_page(soup):
         'genre_book': genre_book,
         'image_link': url_image,
     }
-    comments_book = []
-    for comment_tag in comments:
-        comments_book.append(comment_tag.find('span', class_="black").get_text(strip=True))
+    comments_book = [comment_tag.find('span', class_="black").get_text(strip=True) for comment_tag in comments]
     content_book['comments'] = comments_book
     pprint(content_book)
 

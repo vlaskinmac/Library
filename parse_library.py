@@ -22,35 +22,13 @@ def check_for_redirect(response):
         raise HTTPError(f'{response.history} - {HTTPError.__name__}')
 
 
-def download_txt(start, end, folder='books'):
-    for number in range(start, end + 1):
-        payload = {"id": number}
-        url_download = f"https://tululu.org/txt.php"
-        response_download = requests.get(url_download, params=payload)
-        response_download.raise_for_status()
-        url_title = f'https://tululu.org/b{number}/'
-        response_title = requests.get(url_title)
-        response_title.raise_for_status()
-        try:
-            if check_for_redirect(response_title):
-                continue
-            else:
-                soup = BeautifulSoup(response_title.text, 'lxml')
-                parse_book_page(html=soup)
-                filepath = get_file_path(dir_name=sanitize_filepath(folder))
-                text_tag = soup.find(id='content').find('h1').get_text(strip=True)
-                file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
-                file_path = os.path.join(filepath, f'{file_name}.txt')
-        except HTTPError as exc:
-            logging.warning(exc)
-        try:
-            if check_for_redirect(response_download):
-                continue
-            else:
-                with open(file_path, 'wb') as file:
-                    file.write(response_download.text)
-        except HTTPError as exc:
-            logging.warning(exc)
+def download_txt(soup, number, response_download, folder='books'):
+        filepath = get_file_path(dir_name=sanitize_filepath(folder))
+        text_tag = soup.find(id='content').find('h1').get_text(strip=True)
+        file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
+        file_path = os.path.join(filepath, f'{file_name}.txt')
+        with open(file_path, 'w') as file:
+            file.write(response_download.text)
 
 
 def get_tail_url(url):
@@ -62,38 +40,25 @@ def get_tail_url(url):
     return url_name, url_tail
 
 
-def download_image(start, end):
+def download_image(soup, filepath):
     host = 'https://tululu.org/'
-    for number in range(start, end + 1):
-        url_image_book = f'https://tululu.org/b{number}/'
-        response = requests.get(url_image_book)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'lxml')
-        filepath = get_file_path(dir_name='image')
-        try:
-            if check_for_redirect(response):
-                continue
-            else:
-                image_link = soup.find(class_='bookimage').find('img')['src']
-                url_image = urljoin(host, image_link)
-                url_name, url_tail = get_tail_url(url=url_image)
-                response_download = requests.get(url_image)
-                response.raise_for_status()
-                file_path = os.path.join(filepath, f'{url_name}{url_tail}')
-
-                with open(f'{file_path}', 'wb') as file:
-                    file.write(response_download.content)
-        except HTTPError as exc:
-            logging.warning(exc)
+    image_link = soup.find(class_='bookimage').find('img')['src']
+    url_image = urljoin(host, image_link)
+    url_name, url_tail = get_tail_url(url=url_image)
+    response_download = requests.get(url_image)
+    response_download.raise_for_status()
+    file_path = os.path.join(filepath, f'{url_name}{url_tail}')
+    with open(file_path, 'wb') as file:
+        file.write(response_download.content)
 
 
-def parse_book_page(html):
+def parse_book_page(soup):
     content_book = {}
     host = 'https://tululu.org/'
-    title_tag = html.find(id='content').find('h1').get_text(strip=True)
-    genre_book = html.find('span', class_='d_book').get_text(strip=True)
-    comments = html.find_all(class_="texts")
-    image_link = html.find(class_='bookimage').find('img')['src']
+    title_tag = soup.find(id='content').find('h1').get_text(strip=True)
+    genre_book = soup.find('span', class_='d_book').get_text(strip=True)
+    comments = soup.find_all(class_="texts")
+    image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
     content_book['title'] = title_tag.split('::')[0].strip()
     content_book['author'] = title_tag.split('::')[1].strip()
@@ -111,7 +76,7 @@ def get_arguments():
         description="The code collects book data from an online library."
     )
     parser.add_argument(
-        "-s", "--start_id", type=int,  help="Set the initial id for book use arguments: '-s or --start_id'"
+        "-s", "--start_id", type=int, help="Set the initial id for book use arguments: '-s or --start_id'"
     )
     parser.add_argument(
         "-e", "--end_id", type=int, help="Set the end id for book use arguments: '-e or --end_id'"
@@ -128,8 +93,24 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     start, end = get_arguments()
-    download_txt(start, end)
-    download_image(start, end)
+    for number in range(start, end + 1):
+        payload = {"id": number}
+        url_download = f"https://tululu.org/txt.php"
+        response_download = requests.get(url_download, params=payload)
+        response_download.raise_for_status()
+        url_title = f'https://tululu.org/b{number}/'
+        response_title = requests.get(url_title)
+        response_title.raise_for_status()
+        filepath = get_file_path(dir_name='image')
+        try:
+            check_for_redirect(response_download)
+        except:
+            logging.warning("[<Response [302]>] - HTTPError")
+            continue
+        soup = BeautifulSoup(response_title.text, 'lxml')
+        download_txt(soup, number, response_download, folder='books')
+        download_image(soup, filepath)
+        parse_book_page(soup)
 
 
 if __name__ == "__main__":

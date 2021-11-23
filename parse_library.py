@@ -99,13 +99,24 @@ def main():
         payload = {"id": book_id}
         url_download = f"https://tululu.org/txt.php"
         response_download = requests.get(url_download, params=payload)
-        response_download.raise_for_status()
+        try:
+            response_download.raise_for_status()
+        except HTTPError as exc:
+            logging.warning(exc)
         url_title_book = f'https://tululu.org/b{book_id}/'
         response_title_book = requests.get(url_title_book)
-        response_title_book.raise_for_status()
+        try:
+            response_title_book.raise_for_status()
+        except HTTPError as exc:
+            logging.warning(exc)
         filepath = get_file_path(dir_name='image')
         try:
             check_for_redirect(response_download)
+        except:
+            logging.warning("[<Response [302]>] - HTTPError")
+            continue
+        try:
+            check_for_redirect(response_title_book)
         except:
             logging.warning("[<Response [302]>] - HTTPError")
             continue

@@ -23,12 +23,12 @@ def check_for_redirect(response):
 
 
 def download_txt(soup, number, response_download, folder='books'):
-        filepath = get_file_path(dir_name=sanitize_filepath(folder))
-        text_tag = soup.find(id='content').find('h1').get_text(strip=True)
-        file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
-        file_path = os.path.join(filepath, f'{file_name}.txt')
-        with open(file_path, 'w') as file:
-            file.write(response_download.text)
+    filepath = get_file_path(dir_name=sanitize_filepath(folder))
+    text_tag = soup.find(id='content').find('h1').get_text(strip=True)
+    file_name = sanitize_filename(f"{number}.{text_tag.split('::')[0].strip()}")
+    file_path = os.path.join(filepath, f'{file_name}.txt')
+    with open(file_path, 'w') as file:
+        file.write(response_download.text)
 
 
 def get_tail_url(url):
@@ -53,17 +53,18 @@ def download_image(soup, filepath):
 
 
 def parse_book_page(soup):
-    content_book = {}
     host = 'https://tululu.org/'
     title_tag = soup.find(id='content').find('h1').get_text(strip=True)
     genre_book = soup.find('span', class_='d_book').get_text(strip=True)
     comments = soup.find_all(class_="texts")
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
-    content_book['title'] = title_tag.split('::')[0].strip()
-    content_book['author'] = title_tag.split('::')[1].strip()
-    content_book['genre_book'] = genre_book.split(':')[1]
-    content_book['image_link'] = url_image
+    content_book = {
+        'title': title_tag.split('::')[0].strip(),
+        'author': title_tag.split('::')[1].strip(),
+        'genre_book': genre_book.split(':')[1],
+        'image_link': url_image,
+    }
     comments_book = []
     for comment_tag in comments:
         comments_book.append(comment_tag.find('span', class_="black").get_text(strip=True))

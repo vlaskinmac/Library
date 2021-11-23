@@ -55,21 +55,23 @@ def download_image(soup, filepath):
 def parse_book_page(soup):
     host = 'https://tululu.org/'
     title_tag = soup.find(id='content').find('h1').get_text(strip=True)
-    genre_book = soup.find('span', class_='d_book').get_text(strip=True)
+    genre_book_text = soup.find('span', class_='d_book').get_text(strip=True)
     comments = soup.find_all(class_="texts")
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
+    _, genre_book = genre_book_text.split(':')
+    title, author = title_tag.split('::')
     content_book = {
-        'title': title_tag.split('::')[0].strip(),
-        'author': title_tag.split('::')[1].strip(),
-        'genre_book': genre_book.split(':')[1],
+        'title': title,
+        'author': author,
+        'genre_book': genre_book,
         'image_link': url_image,
     }
     comments_book = []
     for comment_tag in comments:
         comments_book.append(comment_tag.find('span', class_="black").get_text(strip=True))
     content_book['comments'] = comments_book
-    pprint(content_book)
+    # pprint(content_book)
 
 
 def get_arguments():
@@ -94,6 +96,8 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     start, end = get_arguments()
+    start=1
+    end = 10
     for number in range(start, end + 1):
         payload = {"id": number}
         url_download = f"https://tululu.org/txt.php"

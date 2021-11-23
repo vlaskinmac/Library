@@ -56,7 +56,7 @@ def download_image(soup, filepath):
 def parse_book_page(soup):
     host = 'https://tululu.org/'
     title_book_tag = soup.find(id='content').find('h1').get_text(strip=True)
-    genre_book = [i.text for i in soup.find('span', class_='d_book').find_all('a')]
+    genre_book = [genre.text for genre in soup.find('span', class_='d_book').find_all('a')]
     comments = soup.find_all(class_="texts")
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
@@ -93,8 +93,9 @@ def main():
         filemode="w",
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
-    start, end = get_arguments()
-
+    # start, end = get_arguments()
+    start=1
+    end=10
     for book_id in range(start, end + 1):
         payload = {"id": book_id}
         url_download = f"https://tululu.org/txt.php"
@@ -112,13 +113,13 @@ def main():
         filepath = get_file_path(dir_name='image')
         try:
             check_for_redirect(response_download)
-        except:
-            logging.warning("[<Response [302]>] - HTTPError")
+        except HTTPError as exc:
+            logging.warning(exc)
             continue
         try:
             check_for_redirect(response_title_book)
-        except:
-            logging.warning("[<Response [302]>] - HTTPError")
+        except HTTPError as exc:
+            logging.warning(exc)
             continue
         soup = BeautifulSoup(response_title_book.text, 'lxml')
         download_txt(soup, book_id, response_download, folder='books')

@@ -22,11 +22,11 @@ def check_for_redirect(response):
         raise HTTPError(f'{response.history} - {HTTPError.__name__}')
 
 
-def download_txt(soup, number, response_download, folder='books'):
+def download_txt(soup, book_id, response_download, folder='books'):
     filepath = get_file_path(dir_name=sanitize_filepath(folder))
     text_tag_text = soup.find(id='content').find('h1').get_text(strip=True)
     text_tag, _ = text_tag_text.split('::')
-    file_name = sanitize_filename(f"{number}.{text_tag}")
+    file_name = sanitize_filename(f"{book_id}.{text_tag}")
     file_path = os.path.join(filepath, f'{file_name}.txt')
     with open(file_path, 'w') as file:
         file.write(response_download.text)
@@ -95,12 +95,12 @@ def main():
     )
     start, end = get_arguments()
 
-    for number in range(start, end + 1):
-        payload = {"id": number}
+    for book_id in range(start, end + 1):
+        payload = {"id": book_id}
         url_download = f"https://tululu.org/txt.php"
         response_download = requests.get(url_download, params=payload)
         response_download.raise_for_status()
-        url_title = f'https://tululu.org/b{number}/'
+        url_title = f'https://tululu.org/b{book_id}/'
         response_title = requests.get(url_title)
         response_title.raise_for_status()
         filepath = get_file_path(dir_name='image')
@@ -110,7 +110,7 @@ def main():
             logging.warning("[<Response [302]>] - HTTPError")
             continue
         soup = BeautifulSoup(response_title.text, 'lxml')
-        download_txt(soup, number, response_download, folder='books')
+        download_txt(soup, book_id, response_download, folder='books')
         download_image(soup, filepath)
         parse_book_page(soup)
 

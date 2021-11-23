@@ -35,9 +35,8 @@ def download_txt(soup, book_id, response_download, folder='books'):
 def get_tail_url(url):
     parse_path_url = urlparse(url)
     path_clean = urllib.parse.unquote(parse_path_url.path)
-    url_file_name = os.path.split(path_clean)
-    url_tail = os.path.splitext(url_file_name[-1])[-1]
-    url_name = os.path.splitext(url_file_name[-1])[0]
+    _, url_file_name = os.path.split(path_clean)
+    url_name, url_tail = os.path.splitext(url_file_name)
     return url_name, url_tail
 
 
@@ -69,7 +68,7 @@ def parse_book_page(soup):
         'image_link': url_image,
         'comments': comments_book,
     }
-    pprint(content_book)
+    # pprint(content_book)
     return content_book
 
 
@@ -95,8 +94,8 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     # start, end = get_arguments()
-    start=1
-    end=10
+    start = 1
+    end = 10
     for book_id in range(start, end + 1):
         payload = {"id": book_id}
         url_download = f"https://tululu.org/txt.php"

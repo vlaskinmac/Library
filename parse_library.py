@@ -6,15 +6,9 @@ from pprint import pprint
 
 import requests
 from bs4 import BeautifulSoup
-from pathvalidate import sanitize_filename, sanitize_filepath
+from pathvalidate import sanitize_filename
 from requests import HTTPError
 from urllib.parse import urljoin, urlparse
-
-
-def get_file_path(dir_name="books"):
-    os.makedirs(dir_name, exist_ok=True)
-    file_path = os.path.abspath(dir_name)
-    return file_path
 
 
 def check_for_redirect(response):
@@ -23,9 +17,9 @@ def check_for_redirect(response):
 
 
 def download_txt(content_book, book_id, response_download, folder='books'):
-    filepath = get_file_path(dir_name=sanitize_filepath(folder))
-    file_name = sanitize_filename(f"{book_id}.{content_book['title_book']}")
-    file_path = os.path.join(filepath, f'{file_name}.txt')
+    os.makedirs(folder, exist_ok=True)
+    filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}.'txt'")
+    file_path = os.path.join(folder, filename)
     with open(file_path, 'w') as file:
         file.write(response_download.text)
 
@@ -38,13 +32,18 @@ def get_tail_url(url):
     return url_name, url_tail
 
 
-def download_image(content_book, filepath):
+def download_image(content_book, book_id, folder):
+    os.makedirs(folder, exist_ok=True)
     url_name, url_tail = get_tail_url(url=content_book['image_link'])
-    response_download = requests.get(content_book['image_link'])
-    response_download.raise_for_status()
-    file_path = os.path.join(filepath, f'{url_name}{url_tail}')
-    with open(file_path, 'wb') as file:
-        file.write(response_download.content)
+    response_download_image = requests.get(content_book['image_link'])
+    try:
+        response_download_image.raise_for_status()
+    except HTTPError as exc:
+        logging.warning(exc)
+    filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}{url_tail}")
+    file_path = os.path.join(folder, filename)
+    with open(file_path, 'wb') as image:
+        image.write(response_download_image.content)
 
 
 def parse_book_page(soup):
@@ -88,9 +87,8 @@ def main():
         filemode="w",
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
-    # start, end = get_arguments()
-    start = 1
-    end = 10
+
+    start, end = get_arguments()
     for book_id in range(start, end + 1):
         payload = {"id": book_id}
         url_download = f"https://tululu.org/txt.php"
@@ -105,7 +103,6 @@ def main():
             response_title_book.raise_for_status()
         except HTTPError as exc:
             logging.warning(exc)
-        filepath = get_file_path(dir_name='image')
         try:
             check_for_redirect(response_download)
         except HTTPError as exc:
@@ -119,7 +116,7 @@ def main():
         soup = BeautifulSoup(response_title_book.text, 'lxml')
         content_book = parse_book_page(soup)
         download_txt(content_book, book_id, response_download, folder='books')
-        download_image(content_book, filepath)
+        download_image(content_book, book_id, folder='image')
 
 
 if __name__ == "__main__":

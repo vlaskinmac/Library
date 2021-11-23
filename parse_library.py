@@ -18,7 +18,7 @@ def check_for_redirect(response):
 
 def download_txt(content_book, book_id, response_download, folder='books'):
     os.makedirs(folder, exist_ok=True)
-    filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}.'txt'")
+    filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}.txt")
     file_path = os.path.join(folder, filename)
     with open(file_path, 'w') as file:
         file.write(response_download.text)
@@ -56,7 +56,7 @@ def parse_book_page(soup):
     title_book, author = title_book_tag.split('::')
     comments_book = [comment_tag.find('span', class_="black").get_text(strip=True) for comment_tag in comments]
     content_book = {
-        'title_book': title_book,
+        'title_book': title_book.strip(),
         'author': author,
         'genre_book': genre_book,
         'image_link': url_image,

@@ -55,11 +55,10 @@ def download_image(soup, filepath):
 def parse_book_page(soup):
     host = 'https://tululu.org/'
     title_tag = soup.find(id='content').find('h1').get_text(strip=True)
-    genre_book_text = soup.find('span', class_='d_book').get_text(strip=True)
+    genre_book = [i.text for i in soup.find('span', class_='d_book').find_all('a')]
     comments = soup.find_all(class_="texts")
     image_link = soup.find(class_='bookimage').find('img')['src']
     url_image = urljoin(host, image_link)
-    _, genre_book = genre_book_text.split(':')
     title, author = title_tag.split('::')
     content_book = {
         'title': title,
@@ -96,6 +95,8 @@ def main():
         format="%(asctime)s - [%(levelname)s] - %(funcName)s() - [line %(lineno)d] - %(message)s",
     )
     start, end = get_arguments()
+    start=1
+    end=10
 
     for number in range(start, end + 1):
         payload = {"id": number}

@@ -16,7 +16,13 @@ def check_for_redirect(response):
         raise HTTPError(f'{response.history} - {HTTPError.__name__}')
 
 
-def download_txt(content_book, book_id, response_download, folder='books'):
+def download_txt(content_book, book_id, payload, folder='books'):
+    url_download = f'https://tululu.org/txt.php'
+    response_download = requests.get(url_download, params=payload)
+    try:
+        response_download.raise_for_status()
+    except HTTPError as exc:
+        logging.warning(exc)
     os.makedirs(folder, exist_ok=True)
     filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}.txt")
     file_path = os.path.join(folder, filename)
@@ -36,10 +42,7 @@ def download_image(content_book, book_id, folder):
     os.makedirs(folder, exist_ok=True)
     url_name, url_tail = get_tail_url(url=content_book['image_link'])
     response_download_image = requests.get(content_book['image_link'])
-    try:
-        response_download_image.raise_for_status()
-    except HTTPError as exc:
-        logging.warning(exc)
+    response_download_image.raise_for_status()
     filename = sanitize_filename(f"{book_id}.{content_book['title_book'].strip()}{url_tail}")
     file_path = os.path.join(folder, filename)
     with open(file_path, 'wb') as image:
@@ -91,12 +94,6 @@ def main():
     start, end = get_arguments()
     for book_id in range(start, end + 1):
         payload = {'id': book_id}
-        url_download = f'https://tululu.org/txt.php'
-        response_download = requests.get(url_download, params=payload)
-        try:
-            response_download.raise_for_status()
-        except HTTPError as exc:
-            logging.warning(exc)
         url_title_book = f'https://tululu.org/b{book_id}/'
         response_title_book = requests.get(url_title_book)
         try:
@@ -104,18 +101,13 @@ def main():
         except HTTPError as exc:
             logging.warning(exc)
         try:
-            check_for_redirect(response_download)
-        except HTTPError as exc:
-            logging.warning(exc)
-            continue
-        try:
             check_for_redirect(response_title_book)
         except HTTPError as exc:
             logging.warning(exc)
             continue
         soup = BeautifulSoup(response_title_book.text, "lxml")
         content_book = parse_book_page(soup)
-        download_txt(content_book, book_id, response_download, folder="books")
+        download_txt(content_book, book_id, payload, folder="books")
         download_image(content_book, book_id, folder="image")
 
 
